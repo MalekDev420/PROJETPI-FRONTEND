@@ -1,0 +1,264 @@
+<div class="categories-management">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>Categories Management</h1>
+      <p>Manage event categories and their settings</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCategoryDialog()">
+        <mat-icon>add</mat-icon>
+        Add Category
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-row">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>category</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.total}}</div>
+          <div class="stat-label">Total Categories</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card active">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.active}}</div>
+          <div class="stat-label">Active Categories</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card inactive">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>block</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.inactive}}</div>
+          <div class="stat-label">Inactive Categories</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card events">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>event</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.totalEvents}}</div>
+          <div class="stat-label">Total Events</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Categories Grid View -->
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Event Categories</mat-card-title>
+      <div class="card-header-actions">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search categories</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilter()" 
+                 placeholder="Search by name or description...">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+      </div>
+
+      <!-- Categories Grid -->
+      <div class="categories-grid" *ngIf="!loading">
+        <div class="category-card" *ngFor="let category of dataSource.data">
+          <div class="category-header">
+            <div class="category-icon" [style.background-color]="category.color">
+              <mat-icon>{{category.icon}}</mat-icon>
+            </div>
+            <div class="category-actions">
+              <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="More actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="openCategoryDialog(category)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit Category</span>
+                </button>
+                <button mat-menu-item (click)="toggleCategoryStatus(category)">
+                  <mat-icon>{{category.isActive ? 'block' : 'check_circle'}}</mat-icon>
+                  <span>{{category.isActive ? 'Deactivate' : 'Activate'}}</span>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="deleteCategory(category)" 
+                        class="delete-action"
+                        [disabled]="category.eventCount > 0">
+                  <mat-icon>delete</mat-icon>
+                  <span>Delete Category</span>
+                </button>
+              </mat-menu>
+            </div>
+          </div>
+          
+          <div class="category-body">
+            <h3>{{category.name}}</h3>
+            <p class="category-description">{{category.description}}</p>
+            
+            <div class="category-stats">
+              <div class="stat">
+                <mat-icon>event</mat-icon>
+                <span>{{category.eventCount}} events</span>
+              </div>
+              <mat-chip [color]="category.isActive ? 'primary' : 'basic'" selected>
+                {{category.isActive ? 'Active' : 'Inactive'}}
+              </mat-chip>
+            </div>
+            
+            <div class="category-footer">
+              <small>Created: {{category.createdAt | date:'MMM d, y'}}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="dataSource.data.length === 0">
+          <mat-icon>category</mat-icon>
+          <h3>No categories found</h3>
+          <p>{{searchTerm ? 'Try adjusting your search' : 'Create your first category to get started'}}</p>
+          <button mat-raised-button color="primary" (click)="openCategoryDialog()" *ngIf="!searchTerm">
+            <mat-icon>add</mat-icon>
+            Create Category
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Categories Table View (Alternative) -->
+  <mat-card class="table-view">
+    <mat-card-header>
+      <mat-card-title>Categories List</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort>
+          
+          <!-- Icon Column -->
+          <ng-container matColumnDef="icon">
+            <th mat-header-cell *matHeaderCellDef>Icon</th>
+            <td mat-cell *matCellDef="let category">
+              <div class="icon-preview" [style.background-color]="category.color">
+                <mat-icon>{{category.icon}}</mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let category">
+              <strong>{{category.name}}</strong>
+            </td>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let category">
+              <span class="description-text">{{category.description}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Event Count Column -->
+          <ng-container matColumnDef="eventCount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Events</th>
+            <td mat-cell *matCellDef="let category">
+              <span class="event-count">{{category.eventCount}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let category">
+              <mat-slide-toggle 
+                [checked]="category.isActive" 
+                (change)="toggleCategoryStatus(category)"
+                color="primary">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Created Date Column -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+            <td mat-cell *matCellDef="let category">
+              {{category.createdAt | date:'MMM d, y'}}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let category">
+              <button mat-icon-button (click)="openCategoryDialog(category)" matTooltip="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="deleteCategory(category)" 
+                      matTooltip="Delete"
+                      [disabled]="category.eventCount > 0"
+                      class="delete-button">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <!-- No Data Row -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="7">
+              <div class="no-data">
+                <mat-icon>category</mat-icon>
+                <p>No categories found</p>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Paginator -->
+        <mat-paginator 
+          [pageSizeOptions]="[5, 10, 25, 100]" 
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- AI Chatbot -->
+<app-ai-chatbot 
+  [context]="'categories'"
+  [quickActions]="[
+    'Suggest new categories',
+    'Analyze category performance',
+    'What categories should I add?',
+    'Show category statistics',
+    'Help with category management'
+  ]">
+</app-ai-chatbot>

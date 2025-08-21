@@ -1,0 +1,200 @@
+<div class="profile-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your account information and preferences</p>
+  </div>
+
+  <!-- Profile Content -->
+  <mat-tab-group>
+    <!-- Personal Information Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>person</mat-icon>
+        Personal Information
+      </ng-template>
+
+      <mat-card class="profile-card">
+        <mat-card-header>
+          <div class="profile-avatar">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <mat-card-title>{{user.fullName}}</mat-card-title>
+          <mat-card-subtitle>{{user.email}}</mat-card-subtitle>
+          <span class="spacer"></span>
+          <button mat-icon-button (click)="toggleEditMode()">
+            <mat-icon>{{isEditMode ? 'close' : 'edit'}}</mat-icon>
+          </button>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form class="profile-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Full Name</mat-label>
+              <input matInput [(ngModel)]="user.fullName" 
+                     [disabled]="!isEditMode"
+                     name="fullName">
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput [(ngModel)]="user.email" 
+                     [disabled]="true"
+                     name="email">
+              <mat-icon matPrefix>email</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Phone Number</mat-label>
+              <input matInput [(ngModel)]="user.phone" 
+                     [disabled]="!isEditMode"
+                     name="phone">
+              <mat-icon matPrefix>phone</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Student ID</mat-label>
+              <input matInput [(ngModel)]="user.studentId" 
+                     [disabled]="!isEditMode"
+                     name="studentId">
+              <mat-icon matPrefix>badge</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Department</mat-label>
+              <input matInput [(ngModel)]="user.department" 
+                     [disabled]="!isEditMode"
+                     name="department">
+              <mat-icon matPrefix>school</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Bio</mat-label>
+              <textarea matInput [(ngModel)]="user.bio" 
+                        [disabled]="!isEditMode"
+                        rows="3"
+                        name="bio">
+              </textarea>
+              <mat-icon matPrefix>description</mat-icon>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+
+        <mat-card-actions *ngIf="isEditMode">
+          <button mat-button (click)="toggleEditMode()">Cancel</button>
+          <button mat-raised-button color="primary" (click)="saveProfile()">
+            <mat-icon>save</mat-icon>
+            Save Changes
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Preferences Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>settings</mat-icon>
+        Preferences
+      </ng-template>
+
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>Notification Preferences</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="preference-item">
+            <div class="preference-info">
+              <h3>Email Notifications</h3>
+              <p>Receive event updates and reminders via email</p>
+            </div>
+            <mat-slide-toggle [(ngModel)]="preferences.emailNotifications">
+            </mat-slide-toggle>
+          </div>
+
+          <div class="preference-item">
+            <div class="preference-info">
+              <h3>SMS Notifications</h3>
+              <p>Get text messages for important updates</p>
+            </div>
+            <mat-slide-toggle [(ngModel)]="preferences.smsNotifications">
+            </mat-slide-toggle>
+          </div>
+
+          <div class="preference-item">
+            <div class="preference-info">
+              <h3>Event Reminders</h3>
+              <p>Receive reminders 24 hours before events</p>
+            </div>
+            <mat-slide-toggle [(ngModel)]="preferences.eventReminders">
+            </mat-slide-toggle>
+          </div>
+
+          <div class="preference-item">
+            <div class="preference-info">
+              <h3>Newsletter</h3>
+              <p>Weekly newsletter with upcoming events</p>
+            </div>
+            <mat-slide-toggle [(ngModel)]="preferences.newsletter">
+            </mat-slide-toggle>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="primary" (click)="savePreferences()">
+            <mat-icon>save</mat-icon>
+            Save Preferences
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Security Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>security</mat-icon>
+        Security
+      </ng-template>
+
+      <mat-card class="security-card">
+        <mat-card-header>
+          <mat-card-title>Change Password</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form class="password-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Current Password</mat-label>
+              <input matInput type="password" 
+                     [(ngModel)]="passwordData.currentPassword"
+                     name="currentPassword">
+              <mat-icon matPrefix>lock</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>New Password</mat-label>
+              <input matInput type="password" 
+                     [(ngModel)]="passwordData.newPassword"
+                     name="newPassword">
+              <mat-icon matPrefix>lock_open</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Confirm New Password</mat-label>
+              <input matInput type="password" 
+                     [(ngModel)]="passwordData.confirmPassword"
+                     name="confirmPassword">
+              <mat-icon matPrefix>lock_outline</mat-icon>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="primary" 
+                  [disabled]="!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword"
+                  (click)="changePassword()">
+            <mat-icon>vpn_key</mat-icon>
+            Change Password
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-tab>
+  </mat-tab-group>
+</div>

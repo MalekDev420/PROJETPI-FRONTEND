@@ -1,0 +1,92 @@
+<div class="feedback-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Event Feedback</h1>
+    <p>Share your experience and help us improve</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Loading events...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading" class="feedback-content">
+    <!-- Event Selection -->
+    <mat-card class="events-card" *ngIf="!selectedEvent">
+      <mat-card-header>
+        <mat-card-title>Select an Event to Review</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="events-list">
+          <div *ngFor="let event of attendedEvents" 
+               class="event-item"
+               (click)="selectEvent(event)">
+            <div class="event-info">
+              <h3>{{event.title}}</h3>
+              <p>{{event.startDate | date:'fullDate'}}</p>
+            </div>
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+          <div *ngIf="attendedEvents.length === 0" class="empty-state">
+            <mat-icon>feedback</mat-icon>
+            <p>No events pending feedback</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Feedback Form -->
+    <mat-card class="feedback-form-card" *ngIf="selectedEvent">
+      <mat-card-header>
+        <mat-card-title>Feedback for: {{selectedEvent.title}}</mat-card-title>
+        <button mat-icon-button (click)="selectedEvent = null">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Rating -->
+        <div class="rating-section">
+          <label>How would you rate this event?</label>
+          <div class="star-rating">
+            <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                     [class.filled]="star <= feedback.rating"
+                     (click)="setRating(star)">
+              {{star <= feedback.rating ? 'star' : 'star_border'}}
+            </mat-icon>
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>What did you like about this event?</mat-label>
+          <textarea matInput 
+                    [(ngModel)]="feedback.comments" 
+                    rows="4"
+                    placeholder="Share your experience...">
+          </textarea>
+        </mat-form-field>
+
+        <!-- Improvements -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>How can we improve?</mat-label>
+          <textarea matInput 
+                    [(ngModel)]="feedback.improvements" 
+                    rows="4"
+                    placeholder="Your suggestions...">
+          </textarea>
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button (click)="selectedEvent = null">Cancel</button>
+        <button mat-raised-button color="primary" 
+                [disabled]="feedback.rating === 0"
+                (click)="submitFeedback()">
+          <mat-icon>send</mat-icon>
+          Submit Feedback
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

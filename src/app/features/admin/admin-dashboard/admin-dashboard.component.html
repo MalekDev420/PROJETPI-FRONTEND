@@ -1,0 +1,293 @@
+<div class="admin-dashboard">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>Dashboard Overview</h1>
+      <p>Welcome back, {{user?.firstName}}! Here's what's happening today.</p>
+    </div>
+    <div class="header-actions">
+      <app-notification-dropdown></app-notification-dropdown>
+      <button mat-raised-button color="primary" (click)="navigateTo('/admin/events/create')">
+        <mat-icon>add</mat-icon>
+        Create Event
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading" class="dashboard-content">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card primary">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>people</mat-icon>
+            <span class="stat-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              {{stats.growthRate}}%
+            </span>
+          </div>
+          <div class="stat-value">{{stats.totalUsers}}</div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-footer">
+            <span class="active-users">{{stats.activeUsers}} active this week</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card accent">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>event</mat-icon>
+            <span class="pending-badge" *ngIf="stats.pendingEvents > 0">
+              {{stats.pendingEvents}}
+            </span>
+          </div>
+          <div class="stat-value">{{stats.totalEvents}}</div>
+          <div class="stat-label">Total Events</div>
+          <div class="stat-footer">
+            <span class="pending">{{stats.pendingEvents}} pending approval</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card success">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>how_to_reg</mat-icon>
+            <span class="stat-trend positive" *ngIf="stats.todayRegistrations > 0">
+              <mat-icon>add</mat-icon>
+              {{stats.todayRegistrations}} today
+            </span>
+          </div>
+          <div class="stat-value">{{stats.totalRegistrations}}</div>
+          <div class="stat-label">Total Registrations</div>
+          <div class="stat-footer">
+            <span>Across all events</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card warn">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-value">{{stats.completedEvents}}</div>
+          <div class="stat-label">Completed Events</div>
+          <div class="stat-footer">
+            <span>{{stats.approvedEvents}} approved</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Event Status Distribution</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas id="eventChart" height="250"></canvas>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Registration Trend</mat-card-title>
+          <mat-card-subtitle>Last 7 days</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas id="registrationChart" height="250"></canvas>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Pending Events Table -->
+    <mat-card class="pending-events-card">
+      <mat-card-header>
+        <mat-card-title>
+          Pending Event Approvals
+          <mat-chip *ngIf="pendingEvents.length > 0" color="warn" selected>
+            {{pendingEvents.length}} Pending
+          </mat-chip>
+        </mat-card-title>
+        <button mat-button color="primary" (click)="navigateTo('/admin/events?status=pending')">
+          View All
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngIf="pendingEvents.length === 0" class="empty-state">
+          <mat-icon>check_circle_outline</mat-icon>
+          <h3>All Caught Up!</h3>
+          <p>No pending events to review</p>
+        </div>
+        
+        <table mat-table [dataSource]="pendingEvents" *ngIf="pendingEvents.length > 0" class="events-table">
+          <!-- Title Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Event Title</th>
+            <td mat-cell *matCellDef="let event" class="event-title">
+              <strong>{{event.title}}</strong>
+              <span class="event-location">
+                <mat-icon>location_on</mat-icon>
+                {{event.location}}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Organizer Column -->
+          <ng-container matColumnDef="organizer">
+            <th mat-header-cell *matHeaderCellDef>Organizer</th>
+            <td mat-cell *matCellDef="let event">
+              <div class="organizer-info">
+                <span class="organizer-name">
+                  {{event.organizer?.firstName}} {{event.organizer?.lastName}}
+                </span>
+                <span class="organizer-email">{{event.organizer?.email}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Category Column -->
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <td mat-cell *matCellDef="let event">
+              <mat-chip [color]="getCategoryColor(event.category)" selected>
+                {{event.category}}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let event">
+              <div class="date-info">
+                <span class="date">{{event.startDate | date:'MMM d, y'}}</span>
+                <span class="time">{{event.startDate | date:'shortTime'}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Registrations Column -->
+          <ng-container matColumnDef="registrations">
+            <th mat-header-cell *matHeaderCellDef>Capacity</th>
+            <td mat-cell *matCellDef="let event">
+              <div class="capacity-info">
+                <mat-icon>people</mat-icon>
+                <span>{{event.registrations?.length || 0}}/{{event.maxParticipants}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let event">
+              <div class="action-buttons">
+                <button mat-icon-button color="primary" 
+                        (click)="approveEvent(event)"
+                        matTooltip="Approve Event">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" 
+                        (click)="rejectEvent(event)"
+                        matTooltip="Reject Event">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        (click)="viewEventDetails(event)"
+                        matTooltip="View Details">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="event-row"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recent Activity & Quick Actions -->
+    <div class="bottom-row">
+      <!-- Recent Activity -->
+      <mat-card class="activity-card">
+        <mat-card-header>
+          <mat-card-title>Recent Activity</mat-card-title>
+          <button mat-icon-button [matMenuTriggerFor]="activityMenu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #activityMenu="matMenu">
+            <button mat-menu-item (click)="navigateTo('/admin/audit-logs')">
+              <mat-icon>history</mat-icon>
+              <span>View All Logs</span>
+            </button>
+            <button mat-menu-item>
+              <mat-icon>download</mat-icon>
+              <span>Export Activity</span>
+            </button>
+          </mat-menu>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="activity-list">
+            <div *ngFor="let activity of recentActivities" class="activity-item">
+              <div class="activity-icon" [style.background-color]="activity.color + '20'">
+                <mat-icon [style.color]="activity.color">{{activity.icon}}</mat-icon>
+              </div>
+              <div class="activity-details">
+                <p>{{activity.message}}</p>
+                <span class="activity-time">{{getTimeAgo(activity.timestamp)}}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Quick Actions -->
+      <mat-card class="quick-actions-card">
+        <mat-card-header>
+          <mat-card-title>Quick Actions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="action-grid">
+            <button mat-stroked-button (click)="navigateTo('/admin/events')">
+              <mat-icon>event</mat-icon>
+              <span>Manage Events</span>
+            </button>
+            <button mat-stroked-button (click)="navigateTo('/admin/users')">
+              <mat-icon>people</mat-icon>
+              <span>Manage Users</span>
+            </button>
+            <button mat-stroked-button (click)="navigateTo('/admin/reports')">
+              <mat-icon>assessment</mat-icon>
+              <span>View Reports</span>
+            </button>
+            <button mat-stroked-button (click)="navigateTo('/admin/categories')">
+              <mat-icon>category</mat-icon>
+              <span>Categories</span>
+            </button>
+            <button mat-stroked-button (click)="navigateTo('/admin/notifications')">
+              <mat-icon>notifications</mat-icon>
+              <span>Send Notification</span>
+            </button>
+            <button mat-stroked-button (click)="navigateTo('/admin/settings')">
+              <mat-icon>settings</mat-icon>
+              <span>Settings</span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

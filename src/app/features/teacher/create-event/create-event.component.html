@@ -1,0 +1,354 @@
+<div class="create-event-container">
+  <div class="page-header">
+    <h1>Create New Event</h1>
+    <p>Fill in the details below to create a new event. AI will assist you with suggestions.</p>
+  </div>
+
+  <mat-stepper [linear]="false" #stepper>
+    <!-- Step 1: Basic Information -->
+    <mat-step [stepControl]="eventForm">
+      <ng-template matStepLabel>Basic Information</ng-template>
+      
+      <mat-card>
+        <mat-card-content>
+          <form [formGroup]="eventForm">
+            <!-- Title -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Event Title</mat-label>
+              <input matInput formControlName="title" placeholder="Enter event title">
+              <mat-error *ngIf="eventForm.get('title')?.hasError('required')">
+                Title is required
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Description -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput formControlName="description" rows="4" 
+                        placeholder="Describe your event in detail"></textarea>
+              <mat-error *ngIf="eventForm.get('description')?.hasError('required')">
+                Description is required
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Category with AI -->
+            <div class="field-with-ai">
+              <mat-form-field appearance="outline" class="flex-field">
+                <mat-label>Category</mat-label>
+                <mat-select formControlName="category">
+                  <mat-option *ngFor="let cat of categories" [value]="cat">
+                    {{cat}}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="eventForm.get('category')?.hasError('required')">
+                  Category is required
+                </mat-error>
+              </mat-form-field>
+              <button mat-raised-button color="accent" type="button"
+                      (click)="categorizeEvent()" [disabled]="aiLoading">
+                <mat-icon>psychology</mat-icon>
+                AI Suggest
+              </button>
+            </div>
+
+            <!-- AI Category Suggestion -->
+            <div *ngIf="aiSuggestions.category" class="ai-suggestion">
+              <mat-icon>lightbulb</mat-icon>
+              <div>
+                <strong>AI Suggestion:</strong> {{aiSuggestions.category.category}}
+                <span class="confidence">({{(aiSuggestions.category.confidence * 100).toFixed(0)}}% confidence)</span>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="tags-section">
+              <mat-form-field appearance="outline" class="flex-field">
+                <mat-label>Tags</mat-label>
+                <input matInput [(ngModel)]="currentTag" [ngModelOptions]="{standalone: true}"
+                       placeholder="Add tags" (keyup.enter)="addTag()">
+                <button mat-icon-button matSuffix (click)="addTag()" type="button">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </mat-form-field>
+              <div class="tags-list">
+                <mat-chip *ngFor="let tag of tags" (removed)="removeTag(tag)">
+                  {{tag}}
+                  <mat-icon matChipRemove>cancel</mat-icon>
+                </mat-chip>
+              </div>
+            </div>
+          </form>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button matStepperNext>Next</button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-step>
+
+    <!-- Step 2: Date & Time -->
+    <mat-step>
+      <ng-template matStepLabel>Date & Time</ng-template>
+      
+      <mat-card>
+        <mat-card-content>
+          <form [formGroup]="eventForm">
+            <!-- AI Time Suggestion Button -->
+            <div class="ai-action-bar">
+              <button mat-raised-button color="primary" type="button"
+                      (click)="suggestTimeSlot()" [disabled]="aiLoading">
+                <mat-icon>schedule</mat-icon>
+                Get AI Time Suggestions
+              </button>
+              <button mat-raised-button type="button"
+                      (click)="checkConflicts()" [disabled]="aiLoading">
+                <mat-icon>warning</mat-icon>
+                Check Conflicts
+              </button>
+            </div>
+
+            <!-- AI Time Suggestion Display -->
+            <div *ngIf="aiSuggestions.timeSlot" class="ai-suggestion large">
+              <mat-icon>access_time</mat-icon>
+              <div>
+                <strong>Recommended Time:</strong> {{aiSuggestions.timeSlot.suggestedTime}}
+                <p>{{aiSuggestions.timeSlot.reason}}</p>
+                <div class="alternatives">
+                  <strong>Alternatives:</strong>
+                  <ul>
+                    <li *ngFor="let time of aiSuggestions.timeSlot.alternativeTimes">{{time}}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conflict Warnings -->
+            <div *ngFor="let conflict of aiSuggestions.conflicts" class="ai-warning">
+              <mat-icon>warning</mat-icon>
+              <div>
+                <strong>{{conflict.type}}:</strong> {{conflict.message}}
+                <p>{{conflict.suggestion}}</p>
+              </div>
+            </div>
+
+            <div class="date-time-row">
+              <!-- Start Date -->
+              <mat-form-field appearance="outline">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startPicker" formControlName="startDate">
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+              </mat-form-field>
+
+              <!-- Start Time -->
+              <mat-form-field appearance="outline">
+                <mat-label>Start Time</mat-label>
+                <input matInput type="time" formControlName="startTime">
+              </mat-form-field>
+            </div>
+
+            <div class="date-time-row">
+              <!-- End Date -->
+              <mat-form-field appearance="outline">
+                <mat-label>End Date</mat-label>
+                <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+              </mat-form-field>
+
+              <!-- End Time -->
+              <mat-form-field appearance="outline">
+                <mat-label>End Time</mat-label>
+                <input matInput type="time" formControlName="endTime">
+              </mat-form-field>
+            </div>
+
+            <!-- Registration Deadline -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Registration Deadline</mat-label>
+              <input matInput [matDatepicker]="deadlinePicker" formControlName="registrationDeadline">
+              <mat-datepicker-toggle matIconSuffix [for]="deadlinePicker"></mat-datepicker-toggle>
+              <mat-datepicker #deadlinePicker></mat-datepicker>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext>Next</button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-step>
+
+    <!-- Step 3: Location & Capacity -->
+    <mat-step>
+      <ng-template matStepLabel>Location & Capacity</ng-template>
+      
+      <mat-card>
+        <mat-card-content>
+          <form [formGroup]="eventForm">
+            <!-- Virtual Toggle -->
+            <mat-slide-toggle formControlName="isVirtual" class="mb-3">
+              Virtual Event
+            </mat-slide-toggle>
+
+            <div class="location-row">
+              <!-- Building -->
+              <mat-form-field appearance="outline">
+                <mat-label>Building</mat-label>
+                <mat-select formControlName="building">
+                  <mat-option *ngFor="let building of buildings" [value]="building">
+                    {{building}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Room -->
+              <mat-form-field appearance="outline">
+                <mat-label>Room</mat-label>
+                <input matInput formControlName="room" placeholder="e.g., Room 301">
+              </mat-form-field>
+            </div>
+
+            <!-- Virtual Link -->
+            <mat-form-field appearance="outline" class="full-width" 
+                           *ngIf="eventForm.get('isVirtual')?.value">
+              <mat-label>Virtual Meeting Link</mat-label>
+              <input matInput formControlName="virtualLink" placeholder="https://meet.example.com/...">
+            </mat-form-field>
+
+            <!-- AI Attendance Prediction -->
+            <div class="ai-action-bar">
+              <button mat-raised-button color="accent" type="button"
+                      (click)="predictAttendance()" [disabled]="aiLoading">
+                <mat-icon>groups</mat-icon>
+                Predict Attendance
+              </button>
+            </div>
+
+            <!-- AI Attendance Prediction Display -->
+            <div *ngIf="aiSuggestions.attendance" class="ai-suggestion large">
+              <mat-icon>groups</mat-icon>
+              <div>
+                <strong>Expected Attendance:</strong> ~{{aiSuggestions.attendance.expectedAttendance}} participants
+                <mat-progress-bar mode="determinate" 
+                                 [value]="aiSuggestions.attendance.confidenceLevel"
+                                 class="confidence-bar"></mat-progress-bar>
+                <span class="confidence">{{aiSuggestions.attendance.confidenceLevel}}% confidence</span>
+                <div class="factors">
+                  <strong>Factors:</strong>
+                  <ul>
+                    <li *ngFor="let factor of aiSuggestions.attendance.factors">{{factor}}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="capacity-row">
+              <!-- Room Capacity -->
+              <mat-form-field appearance="outline">
+                <mat-label>Room Capacity</mat-label>
+                <input matInput type="number" formControlName="capacity">
+                <mat-icon matSuffix>meeting_room</mat-icon>
+              </mat-form-field>
+
+              <!-- Max Participants -->
+              <mat-form-field appearance="outline">
+                <mat-label>Max Participants</mat-label>
+                <input matInput type="number" formControlName="maxParticipants">
+                <mat-icon matSuffix>people</mat-icon>
+              </mat-form-field>
+
+              <!-- Min Participants -->
+              <mat-form-field appearance="outline">
+                <mat-label>Min Participants</mat-label>
+                <input matInput type="number" formControlName="minParticipants">
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- Target Audience -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Target Audience</mat-label>
+              <mat-select formControlName="targetAudience">
+                <mat-option *ngFor="let audience of targetAudiences" [value]="audience">
+                  {{audience | titlecase}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext>Next</button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-step>
+
+    <!-- Step 4: Review & Submit -->
+    <mat-step>
+      <ng-template matStepLabel>Review & Submit</ng-template>
+      
+      <mat-card>
+        <mat-card-content>
+          <h3>Review Your Event</h3>
+          
+          <div class="review-section">
+            <div class="review-item">
+              <strong>Title:</strong> {{eventForm.get('title')?.value}}
+            </div>
+            <div class="review-item">
+              <strong>Category:</strong> {{eventForm.get('category')?.value}}
+            </div>
+            <div class="review-item">
+              <strong>Date:</strong> 
+              {{eventForm.get('startDate')?.value | date:'mediumDate'}} 
+              {{eventForm.get('startTime')?.value}} - 
+              {{eventForm.get('endTime')?.value}}
+            </div>
+            <div class="review-item">
+              <strong>Location:</strong> 
+              {{eventForm.get('room')?.value}}, {{eventForm.get('building')?.value}}
+              <span *ngIf="eventForm.get('isVirtual')?.value"> (Virtual)</span>
+            </div>
+            <div class="review-item">
+              <strong>Capacity:</strong> 
+              {{eventForm.get('maxParticipants')?.value}} participants
+            </div>
+            <div class="review-item" *ngIf="tags.length > 0">
+              <strong>Tags:</strong> {{tags.join(', ')}}
+            </div>
+          </div>
+
+          <!-- AI Summary -->
+          <div class="ai-summary" *ngIf="aiSuggestions.timeSlot || aiSuggestions.attendance">
+            <h4>AI Insights Summary</h4>
+            <ul>
+              <li *ngIf="aiSuggestions.timeSlot">
+                <mat-icon>schedule</mat-icon>
+                Optimal time slot suggested
+              </li>
+              <li *ngIf="aiSuggestions.attendance">
+                <mat-icon>groups</mat-icon>
+                Expected ~{{aiSuggestions.attendance.expectedAttendance}} attendees
+              </li>
+              <li *ngIf="aiSuggestions.conflicts.length === 0">
+                <mat-icon>check_circle</mat-icon>
+                No scheduling conflicts detected
+              </li>
+            </ul>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" 
+                  (click)="onSubmit()" 
+                  [disabled]="loading || eventForm.invalid">
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">Create Event</span>
+          </button>
+          <button mat-button (click)="cancel()">Cancel</button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-step>
+  </mat-stepper>
+</div>

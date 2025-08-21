@@ -1,0 +1,70 @@
+<div class="calendar-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Event Calendar</h1>
+      <p>View and manage your events in calendar view</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline">
+        <mat-label>Filter by Status</mat-label>
+        <mat-select [(value)]="viewFilter" (selectionChange)="onViewFilterChange()">
+          <mat-option value="all">All Events</mat-option>
+          <mat-option value="approved">Approved</mat-option>
+          <mat-option value="pending">Pending</mat-option>
+          <mat-option value="rejected">Rejected</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Filter by Category</mat-label>
+        <mat-select [(value)]="categoryFilter" (selectionChange)="onCategoryFilterChange()">
+          <mat-option value="all">All Categories</mat-option>
+          <mat-option *ngFor="let cat of categories" [value]="cat">{{cat}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <button mat-raised-button (click)="goToToday()">
+        <mat-icon>today</mat-icon>
+        Today
+      </button>
+      
+      <button mat-raised-button color="primary" (click)="createEvent()">
+        <mat-icon>add</mat-icon>
+        Create Event
+      </button>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <mat-card class="calendar-card">
+    <mat-card-content>
+      <full-calendar [options]="calendarOptions"></full-calendar>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Legend -->
+  <mat-card class="legend-card">
+    <mat-card-content>
+      <h3>Event Status Legend</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <span class="legend-color approved"></span>
+          <span>Approved</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color pending"></span>
+          <span>Pending</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color rejected"></span>
+          <span>Rejected</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color completed"></span>
+          <span>Completed</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

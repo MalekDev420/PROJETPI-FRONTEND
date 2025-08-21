@@ -1,0 +1,243 @@
+<div class="student-dashboard">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1>Welcome back, {{currentUser?.firstName}}! 👋</h1>
+      <p>Ready to explore new learning opportunities?</p>
+    </div>
+    <div class="welcome-actions">
+      <app-notification-bell></app-notification-bell>
+      <button mat-raised-button color="primary" routerLink="/student/events">
+        <mat-icon>explore</mat-icon>
+        Browse Events
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon registered">
+          <mat-icon>event_available</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.registeredEvents}}</div>
+          <div class="stat-label">Registered Events</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon upcoming">
+          <mat-icon>upcoming</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.upcomingEvents}}</div>
+          <div class="stat-label">Upcoming Events</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon attended">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.attendedEvents}}</div>
+          <div class="stat-label">Events Attended</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon certificates">
+          <mat-icon>workspace_premium</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-value">{{stats.certificates}}</div>
+          <div class="stat-label">Certificates Earned</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Left Column -->
+    <div class="left-column">
+      <!-- Upcoming Events -->
+      <mat-card class="upcoming-events-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>event</mat-icon>
+            Your Upcoming Events
+          </mat-card-title>
+          <button mat-button color="primary" routerLink="/student/my-events">
+            View All
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="events-list" *ngIf="upcomingEvents.length > 0">
+            <div class="event-item" *ngFor="let event of upcomingEvents.slice(0, 3)">
+              <div class="event-date">
+                <div class="date-day">{{getEventDate(event.startDate).getDate()}}</div>
+                <div class="date-month">{{getEventDate(event.startDate).toLocaleDateString('en', {month: 'short'})}}</div>
+              </div>
+              <div class="event-details">
+                <h3>{{event.title}}</h3>
+                <div class="event-meta">
+                  <span><mat-icon>schedule</mat-icon> {{getEventDate(event.startDate).toLocaleTimeString('en', {hour: '2-digit', minute: '2-digit'})}}</span>
+                  <span><mat-icon>location_on</mat-icon> {{event.location.room}}</span>
+                </div>
+                <mat-chip [color]="getCategoryColor(event.category)" selected>
+                  {{event.category}}
+                </mat-chip>
+              </div>
+              <div class="event-countdown">
+                <span class="countdown-value">{{getDaysUntilEvent(event.startDate)}}</span>
+                <span class="countdown-label">days</span>
+              </div>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="upcomingEvents.length === 0">
+            <mat-icon>event_busy</mat-icon>
+            <p>No upcoming events</p>
+            <button mat-button color="primary" routerLink="/student/events">Browse Events</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Recommended Events -->
+      <mat-card class="recommended-events-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>recommend</mat-icon>
+            Recommended For You
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recommended-list">
+            <div class="recommended-item" *ngFor="let event of recommendedEvents">
+              <div class="recommended-image">
+                <mat-icon>{{event.category === 'Workshop' ? 'build' : event.category === 'Seminar' ? 'mic' : 'event'}}</mat-icon>
+              </div>
+              <div class="recommended-details">
+                <h4>{{event.title}}</h4>
+                <p>{{event.description}}</p>
+                <div class="recommended-meta">
+                  <mat-chip size="small">{{event.category}}</mat-chip>
+                  <span class="date">{{getEventDate(event.startDate).toLocaleDateString()}}</span>
+                </div>
+              </div>
+              <div class="recommended-action">
+                <button mat-mini-fab color="primary" (click)="registerForEvent(event)" matTooltip="Register">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      <!-- Attendance Overview -->
+      <mat-card class="attendance-card">
+        <mat-card-header>
+          <mat-card-title>Attendance Overview</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="attendance-rate">
+            <div class="rate-value">{{stats.attendanceRate}}%</div>
+            <div class="rate-label">Attendance Rate</div>
+          </div>
+          <mat-progress-bar mode="determinate" [value]="stats.attendanceRate" color="primary"></mat-progress-bar>
+          <div class="chart-container">
+            <canvas #attendanceChart></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Category Interests -->
+      <mat-card class="interests-card">
+        <mat-card-header>
+          <mat-card-title>Your Interests</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #categoryChart></canvas>
+          </div>
+          <div class="favorite-categories">
+            <h4>Top Categories</h4>
+            <div class="category-chips">
+              <mat-chip *ngFor="let category of stats.favoriteCategories" [color]="getCategoryColor(category)" selected>
+                {{category}}
+              </mat-chip>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Recent Activity -->
+      <mat-card class="activity-card">
+        <mat-card-header>
+          <mat-card-title>Recent Activity</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="activity-timeline">
+            <div class="activity-item" *ngFor="let activity of recentActivities">
+              <div class="activity-icon" [class]="activity.color">
+                <mat-icon>{{activity.icon}}</mat-icon>
+              </div>
+              <div class="activity-details">
+                <p>{{activity.title}}</p>
+                <small>{{activity.timestamp | date:'short'}}</small>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <mat-card class="quick-actions-card">
+    <mat-card-header>
+      <mat-card-title>Quick Actions</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="actions-grid">
+        <button mat-raised-button class="action-button" routerLink="/student/events">
+          <mat-icon>explore</mat-icon>
+          <span>Browse Events</span>
+        </button>
+        <button mat-raised-button class="action-button" routerLink="/student/my-events">
+          <mat-icon>event_note</mat-icon>
+          <span>My Events</span>
+        </button>
+        <button mat-raised-button class="action-button" routerLink="/student/certificates">
+          <mat-icon>workspace_premium</mat-icon>
+          <span>Certificates</span>
+        </button>
+        <button mat-raised-button class="action-button" routerLink="/student/calendar">
+          <mat-icon>calendar_month</mat-icon>
+          <span>Calendar</span>
+        </button>
+        <button mat-raised-button class="action-button" routerLink="/student/feedback">
+          <mat-icon>rate_review</mat-icon>
+          <span>Give Feedback</span>
+        </button>
+        <button mat-raised-button class="action-button" routerLink="/student/profile">
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

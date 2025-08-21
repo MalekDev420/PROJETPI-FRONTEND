@@ -1,0 +1,271 @@
+<div class="analytics-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Event Analytics</h1>
+      <p>Track performance and insights for your events</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline">
+        <mat-label>Time Period</mat-label>
+        <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+          <mat-option value="7days">Last 7 Days</mat-option>
+          <mat-option value="30days">Last 30 Days</mat-option>
+          <mat-option value="90days">Last 90 Days</mat-option>
+          <mat-option value="year">This Year</mat-option>
+          <mat-option value="all">All Time</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <button mat-raised-button color="primary" (click)="exportReport()">
+        <mat-icon>download</mat-icon>
+        Export Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Overview Stats -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon>event</mat-icon>
+          <span>Total Events</span>
+        </div>
+        <div class="stat-value">{{overviewStats.totalEvents}}</div>
+        <div class="stat-change positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+12% from last period</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon>people</mat-icon>
+          <span>Total Attendees</span>
+        </div>
+        <div class="stat-value">{{overviewStats.totalAttendees}}</div>
+        <div class="stat-change positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+18% from last period</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon>how_to_reg</mat-icon>
+          <span>Avg Attendance</span>
+        </div>
+        <div class="stat-value">{{overviewStats.avgAttendance}}%</div>
+        <div class="stat-change positive">
+          <mat-icon>trending_up</mat-icon>
+          <span>+5% from last period</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-header">
+          <mat-icon>check_circle</mat-icon>
+          <span>Completion Rate</span>
+        </div>
+        <div class="stat-value">{{overviewStats.completionRate}}%</div>
+        <div class="stat-change neutral">
+          <mat-icon>trending_flat</mat-icon>
+          <span>Same as last period</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Performance Metrics -->
+  <mat-card class="metrics-card">
+    <mat-card-header>
+      <mat-card-title>Performance Metrics</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-label">Registration Rate</div>
+          <div class="metric-value">{{performanceMetrics.registrationRate}}%</div>
+          <mat-progress-bar mode="determinate" 
+                          [value]="performanceMetrics.registrationRate"
+                          [color]="getProgressColor(performanceMetrics.registrationRate)">
+          </mat-progress-bar>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-label">Attendance Rate</div>
+          <div class="metric-value">{{performanceMetrics.attendanceRate}}%</div>
+          <mat-progress-bar mode="determinate" 
+                          [value]="performanceMetrics.attendanceRate"
+                          [color]="getProgressColor(performanceMetrics.attendanceRate)">
+          </mat-progress-bar>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-label">Satisfaction Score</div>
+          <div class="metric-value">{{performanceMetrics.satisfactionScore}}/5.0</div>
+          <div class="rating-stars">
+            <mat-icon *ngFor="let star of getRatingStars(performanceMetrics.satisfactionScore)">
+              {{star}}
+            </mat-icon>
+          </div>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-label">Engagement Rate</div>
+          <div class="metric-value">{{performanceMetrics.engagementRate}}%</div>
+          <mat-progress-bar mode="determinate" 
+                          [value]="performanceMetrics.engagementRate"
+                          [color]="getProgressColor(performanceMetrics.engagementRate)">
+          </mat-progress-bar>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="charts-row">
+    <!-- Events by Category -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Events by Category</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="category-chart">
+          <div *ngFor="let cat of eventsByCategory; let i = index" class="category-item">
+            <div class="category-info">
+              <span class="category-name">{{cat.category}}</span>
+              <span class="category-count">{{cat.count}} events</span>
+            </div>
+            <div class="category-bar">
+              <div class="category-progress" 
+                   [style.width.%]="cat.percentage"
+                   [style.background]="getCategoryColor(i)">
+              </div>
+            </div>
+            <span class="category-percentage">{{cat.percentage}}%</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Monthly Trend -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Monthly Trend</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="trend-chart">
+          <div *ngFor="let month of monthlyTrend" class="month-item">
+            <div class="month-bars">
+              <div class="bar events-bar" 
+                   [style.height.px]="month.events * 15"
+                   [matTooltip]="month.events + ' events'">
+              </div>
+              <div class="bar attendees-bar" 
+                   [style.height.px]="month.attendees * 1.5"
+                   [matTooltip]="month.attendees + ' attendees'">
+              </div>
+            </div>
+            <span class="month-label">{{month.month}}</span>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color events"></span>
+            <span>Events</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color attendees"></span>
+            <span>Attendees</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Top Events -->
+  <mat-card class="top-events-card">
+    <mat-card-header>
+      <mat-card-title>Top Performing Events</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="events-list">
+        <div *ngFor="let event of topEvents; let i = index" class="event-item">
+          <div class="event-rank">{{i + 1}}</div>
+          <div class="event-details">
+            <h3>{{event.title}}</h3>
+            <p>{{event.date | date:'MMM d, y'}}</p>
+          </div>
+          <div class="event-stats">
+            <div class="stat">
+              <mat-icon>people</mat-icon>
+              <span>{{event.attendees}} attendees</span>
+            </div>
+            <div class="stat">
+              <mat-icon>star</mat-icon>
+              <span>{{event.rating}} rating</span>
+            </div>
+            <div class="stat">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{event.completionRate}}% completed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Attendee Insights -->
+  <mat-card class="insights-card">
+    <mat-card-header>
+      <mat-card-title>Attendee Insights</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="insights-grid">
+        <div class="insight-item">
+          <mat-icon>person_add</mat-icon>
+          <div class="insight-content">
+            <div class="insight-value">{{attendeeInsights.newAttendees}}</div>
+            <div class="insight-label">New Attendees</div>
+          </div>
+        </div>
+
+        <div class="insight-item">
+          <mat-icon>replay</mat-icon>
+          <div class="insight-content">
+            <div class="insight-value">{{attendeeInsights.returningAttendees}}</div>
+            <div class="insight-label">Returning Attendees</div>
+          </div>
+        </div>
+
+        <div class="insight-item">
+          <mat-icon>assessment</mat-icon>
+          <div class="insight-content">
+            <div class="insight-value">{{attendeeInsights.avgEventsPerAttendee}}</div>
+            <div class="insight-label">Avg Events/Attendee</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="departments-section">
+        <h4>Top Departments</h4>
+        <div class="department-list">
+          <div *ngFor="let dept of attendeeInsights.topDepartments" class="department-item">
+            <span class="dept-name">{{dept.name}}</span>
+            <div class="dept-bar">
+              <div class="dept-progress" [style.width.%]="dept.percentage"></div>
+            </div>
+            <span class="dept-percentage">{{dept.percentage}}%</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

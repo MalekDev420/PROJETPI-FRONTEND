@@ -1,0 +1,69 @@
+<div class="certificates-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>My Certificates</h1>
+    <p>View and download your achievement certificates</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Loading certificates...</p>
+  </div>
+
+  <!-- Certificates Grid -->
+  <div *ngIf="!isLoading && certificates.length > 0" class="certificates-grid">
+    <mat-card *ngFor="let certificate of certificates" class="certificate-card">
+      <div class="certificate-preview">
+        <mat-icon>workspace_premium</mat-icon>
+        <div class="certificate-badge">
+          <span>CERTIFICATE</span>
+          <span>OF COMPLETION</span>
+        </div>
+      </div>
+      
+      <mat-card-content>
+        <h3>{{certificate.eventTitle}}</h3>
+        <p class="event-category">
+          <mat-chip>{{certificate.category}}</mat-chip>
+        </p>
+        <div class="certificate-details">
+          <p>
+            <mat-icon>calendar_today</mat-icon>
+            <span>Completed on {{certificate.completionDate | date:'fullDate'}}</span>
+          </p>
+          <p>
+            <mat-icon>schedule</mat-icon>
+            <span>{{certificate.duration}} hours</span>
+          </p>
+          <p>
+            <mat-icon>verified</mat-icon>
+            <span>Certificate ID: {{certificate._id}}</span>
+          </p>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="downloadCertificate(certificate)">
+          <mat-icon>download</mat-icon>
+          Download
+        </button>
+        <button mat-button (click)="shareCertificate(certificate)">
+          <mat-icon>share</mat-icon>
+          Share
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && certificates.length === 0" class="empty-state">
+    <mat-icon>workspace_premium</mat-icon>
+    <h3>No certificates yet</h3>
+    <p>Complete events to earn certificates</p>
+    <button mat-raised-button color="primary" routerLink="/student/events">
+      <mat-icon>explore</mat-icon>
+      Browse Events
+    </button>
+  </div>
+</div>

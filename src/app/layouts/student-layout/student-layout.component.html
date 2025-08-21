@@ -1,0 +1,121 @@
+<mat-sidenav-container class="student-layout">
+  <mat-sidenav 
+    #sidenav 
+    mode="side" 
+    [opened]="isSidenavOpen"
+    class="sidenav">
+    
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo">
+        <mat-icon>school</mat-icon>
+        <span>Event Hub</span>
+      </div>
+    </div>
+
+    <!-- User Info -->
+    <div class="user-info">
+      <div class="user-avatar">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="user-details">
+        <h3>{{currentUser?.fullName || 'Student'}}</h3>
+        <p>{{currentUser?.email}}</p>
+        <mat-chip class="role-chip">Student</mat-chip>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <mat-nav-list class="nav-menu">
+      <a mat-list-item 
+         *ngFor="let item of menuItems" 
+         [routerLink]="item.route" 
+         routerLinkActive="active"
+         [matTooltip]="item.description"
+         matTooltipPosition="right">
+        <mat-icon [matBadge]="item.badge" 
+                  [matBadgeHidden]="!item.badge"
+                  matBadgeColor="warn"
+                  matBadgeSize="small">
+          {{item.icon}}
+        </mat-icon>
+        <span class="nav-label">{{item.label}}</span>
+      </a>
+    </mat-nav-list>
+
+    <!-- Bottom Actions -->
+    <div class="sidenav-footer">
+      <button mat-button class="help-button" matTooltip="Get Help">
+        <mat-icon>help_outline</mat-icon>
+        <span>Help & Support</span>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <!-- Top Toolbar -->
+    <mat-toolbar class="toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="toolbar-spacer"></span>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search events...">
+      </div>
+
+      <!-- Right Actions -->
+      <div class="toolbar-actions">
+        <!-- Notifications -->
+        <button mat-icon-button matTooltip="Notifications">
+          <mat-icon matBadge="3" matBadgeColor="warn" matBadgeSize="small">
+            notifications
+          </mat-icon>
+        </button>
+
+        <!-- Messages -->
+        <button mat-icon-button matTooltip="Messages">
+          <mat-icon>message</mat-icon>
+        </button>
+
+        <!-- User Menu -->
+        <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <div class="user-menu-header">
+            <div class="user-avatar-small">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div>
+              <div class="user-name">{{currentUser?.fullName}}</div>
+              <div class="user-email">{{currentUser?.email}}</div>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item routerLink="/student/profile">
+            <mat-icon>person</mat-icon>
+            <span>My Profile</span>
+          </button>
+          <button mat-menu-item routerLink="/student/settings">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-toolbar>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

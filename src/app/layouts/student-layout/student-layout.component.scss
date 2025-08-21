@@ -1,0 +1,277 @@
+.student-layout {
+  height: 100vh;
+  display: flex;
+}
+
+// Sidenav Styles
+.sidenav {
+  width: 280px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+
+  .logo-section {
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 500;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+  }
+
+  .user-info {
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .user-avatar {
+      width: 64px;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .user-details {
+      h3 {
+        margin: 0 0 4px;
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      p {
+        margin: 0 0 8px;
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .role-chip {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 16px;
+      }
+    }
+  }
+
+  .nav-menu {
+    flex: 1;
+    padding: 16px 0;
+    overflow-y: auto;
+
+    a {
+      color: white !important;
+      margin: 4px 16px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        margin-right: 16px;
+        color: white;
+      }
+
+      .nav-label {
+        font-size: 15px;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      &.active {
+        background: rgba(255, 255, 255, 0.2);
+        font-weight: 500;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 4px;
+          height: 24px;
+          background: white;
+          border-radius: 0 4px 4px 0;
+        }
+      }
+    }
+  }
+
+  .sidenav-footer {
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    .help-button {
+      width: 100%;
+      color: white;
+      justify-content: flex-start;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+// Toolbar Styles
+.toolbar {
+  background: white;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .toolbar-spacer {
+    flex: 1;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: #f5f5f5;
+    border-radius: 24px;
+    padding: 8px 16px;
+    margin-right: 24px;
+    min-width: 300px;
+
+    mat-icon {
+      color: #666;
+      margin-right: 8px;
+    }
+
+    input {
+      border: none;
+      background: none;
+      outline: none;
+      flex: 1;
+      font-size: 14px;
+
+      &::placeholder {
+        color: #999;
+      }
+    }
+  }
+
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    button {
+      color: #666;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+    }
+
+    .user-menu-trigger {
+      margin-left: 8px;
+    }
+  }
+}
+
+// User Menu Styles
+.user-menu-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8f9fa;
+
+  .user-avatar-small {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      color: white;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .user-name {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .user-email {
+    font-size: 12px;
+    color: #666;
+  }
+}
+
+// Main Content
+.main-content {
+  padding: 24px;
+  background: #f8f9fa;
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .sidenav {
+    width: 240px;
+  }
+
+  .search-bar {
+    display: none;
+  }
+
+  .main-content {
+    padding: 16px;
+  }
+}
+
+// Dark mode support (removed as requested)
+mat-sidenav-container {
+  background: #f8f9fa;
+}
+
+::ng-deep {
+  .mat-mdc-menu-panel {
+    margin-top: 8px;
+  }
+
+  .mat-toolbar {
+    --mat-toolbar-title-text-size: 18px;
+  }
+
+  .mat-badge-content {
+    font-size: 10px;
+  }
+}

@@ -1,0 +1,291 @@
+<div class="reports-analytics">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>Reports & Analytics</h1>
+      <p>Comprehensive insights and performance metrics</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="period-select">
+        <mat-label>Report Period</mat-label>
+        <mat-select [(ngModel)]="reportPeriod" (selectionChange)="onPeriodChange()">
+          <mat-option *ngFor="let period of periods" [value]="period.value">
+            {{period.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div *ngIf="reportPeriod === 'custom'" class="date-range">
+        <mat-form-field appearance="outline">
+          <mat-label>Start Date</mat-label>
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="loadReports()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>End Date</mat-label>
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="loadReports()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <button mat-raised-button [matMenuTriggerFor]="exportMenu" color="primary">
+        <mat-icon>download</mat-icon>
+        Export Report
+      </button>
+      <mat-menu #exportMenu="matMenu">
+        <button mat-menu-item (click)="exportReport('pdf')">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <span>Export as PDF</span>
+        </button>
+        <button mat-menu-item (click)="exportReport('excel')">
+          <mat-icon>table_chart</mat-icon>
+          <span>Export as Excel</span>
+        </button>
+        <button mat-menu-item (click)="exportReport('csv')">
+          <mat-icon>description</mat-icon>
+          <span>Export as CSV</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading analytics data...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading">
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="metric">
+            <mat-icon>event</mat-icon>
+            <div class="metric-details">
+              <div class="metric-value">{{stats.totalEvents}}</div>
+              <div class="metric-label">Total Events</div>
+              <div class="metric-sub">
+                <span class="upcoming">{{stats.upcomingEvents}} upcoming</span>
+                <span class="past">{{stats.pastEvents}} past</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="metric">
+            <mat-icon>how_to_reg</mat-icon>
+            <div class="metric-details">
+              <div class="metric-value">{{stats.totalRegistrations}}</div>
+              <div class="metric-label">Total Registrations</div>
+              <div class="metric-sub">
+                <mat-icon>people</mat-icon>
+                <span>{{stats.averageAttendance}} avg per event</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="metric">
+            <mat-icon>people</mat-icon>
+            <div class="metric-details">
+              <div class="metric-value">{{stats.activeUsers}}</div>
+              <div class="metric-label">Active Users</div>
+              <div class="metric-sub growth" [class.positive]="stats.userGrowthRate > 0">
+                <mat-icon>{{getGrowthIcon(stats.userGrowthRate)}}</mat-icon>
+                <span>{{stats.userGrowthRate}}% growth</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="metric">
+            <mat-icon>check_circle</mat-icon>
+            <div class="metric-details">
+              <div class="metric-value">{{stats.eventCompletionRate}}%</div>
+              <div class="metric-label">Completion Rate</div>
+              <div class="metric-sub">
+                <mat-icon>category</mat-icon>
+                <span>{{stats.topCategory}} top category</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-grid">
+      <!-- Events by Category -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Events by Category</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Registration Trends -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Registration Trends</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Monthly Events -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Events by Month</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Department Distribution -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Users by Department</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas id="departmentChart"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Tables Section -->
+    <mat-tab-group class="data-tables">
+      <!-- Popular Events Tab -->
+      <mat-tab label="Popular Events">
+        <div class="table-container">
+          <table mat-table [dataSource]="popularEventsData" class="data-table">
+            <!-- Rank Column -->
+            <ng-container matColumnDef="rank">
+              <th mat-header-cell *matHeaderCellDef>#</th>
+              <td mat-cell *matCellDef="let event">
+                <div class="rank-badge" [class.top-three]="event.rank <= 3">
+                  {{event.rank}}
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Title Column -->
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef>Event Title</th>
+              <td mat-cell *matCellDef="let event">{{event.title}}</td>
+            </ng-container>
+
+            <!-- Category Column -->
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Category</th>
+              <td mat-cell *matCellDef="let event">
+                <mat-chip>{{event.category}}</mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Organizer Column -->
+            <ng-container matColumnDef="organizer">
+              <th mat-header-cell *matHeaderCellDef>Organizer</th>
+              <td mat-cell *matCellDef="let event">{{event.organizer}}</td>
+            </ng-container>
+
+            <!-- Registrations Column -->
+            <ng-container matColumnDef="registrations">
+              <th mat-header-cell *matHeaderCellDef>Registrations</th>
+              <td mat-cell *matCellDef="let event">
+                <strong>{{event.registrations}}</strong>
+              </td>
+            </ng-container>
+
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let event">{{event.date | date:'MMM d, y'}}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="popularEventsColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: popularEventsColumns;"></tr>
+          </table>
+          <mat-paginator #eventsPaginator [pageSizeOptions]="[5, 10, 25]"></mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- Top Organizers Tab -->
+      <mat-tab label="Top Organizers">
+        <div class="table-container">
+          <table mat-table [dataSource]="topOrganizersData" class="data-table">
+            <!-- Rank Column -->
+            <ng-container matColumnDef="rank">
+              <th mat-header-cell *matHeaderCellDef>#</th>
+              <td mat-cell *matCellDef="let organizer">
+                <div class="rank-badge" [class.top-three]="organizer.rank <= 3">
+                  {{organizer.rank}}
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let organizer">{{organizer.name}}</td>
+            </ng-container>
+
+            <!-- Events Created Column -->
+            <ng-container matColumnDef="eventsCreated">
+              <th mat-header-cell *matHeaderCellDef>Events Created</th>
+              <td mat-cell *matCellDef="let organizer">{{organizer.eventsCreated}}</td>
+            </ng-container>
+
+            <!-- Total Registrations Column -->
+            <ng-container matColumnDef="totalRegistrations">
+              <th mat-header-cell *matHeaderCellDef>Total Registrations</th>
+              <td mat-cell *matCellDef="let organizer">
+                <strong>{{organizer.totalRegistrations}}</strong>
+              </td>
+            </ng-container>
+
+            <!-- Success Rate Column -->
+            <ng-container matColumnDef="successRate">
+              <th mat-header-cell *matHeaderCellDef>Success Rate</th>
+              <td mat-cell *matCellDef="let organizer">
+                <div class="success-rate">
+                  <mat-icon class="success-icon">check_circle</mat-icon>
+                  {{organizer.successRate}}%
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="topOrganizersColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: topOrganizersColumns;"></tr>
+          </table>
+          <mat-paginator #usersPaginator [pageSizeOptions]="[5, 10, 25]"></mat-paginator>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

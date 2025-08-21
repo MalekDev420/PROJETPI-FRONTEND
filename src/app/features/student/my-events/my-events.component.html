@@ -1,0 +1,188 @@
+<div class="my-events">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>My Events</h1>
+    <p>Manage your registered events and track your attendance</p>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group [(selectedIndex)]="selectedTab" class="events-tabs">
+    <!-- Upcoming Events Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>event</mat-icon>
+        Upcoming ({{upcomingEvents.length}})
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+          <p>Loading your events...</p>
+        </div>
+
+        <!-- Events List -->
+        <div *ngIf="!isLoading && upcomingEvents.length > 0" class="events-list">
+          <mat-card *ngFor="let event of upcomingEvents" class="event-card upcoming">
+            <mat-card-header>
+              <div mat-card-avatar class="event-avatar">
+                <mat-icon>{{getCategoryIcon(event.category?.name)}}</mat-icon>
+              </div>
+              <mat-card-title>{{event.title}}</mat-card-title>
+              <mat-card-subtitle>
+                <mat-chip-set>
+                  <mat-chip>{{event.category?.name || 'Uncategorized'}}</mat-chip>
+                  <mat-chip color="primary">
+                    <mat-icon>schedule</mat-icon>
+                    In {{getDaysUntilEvent(event)}} days
+                  </mat-chip>
+                </mat-chip-set>
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p class="event-description">{{event.description}}</p>
+              
+              <div class="event-details">
+                <div class="detail-row">
+                  <div class="detail-item">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span>{{event.startDate | date:'fullDate'}}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{event.startDate | date:'shortTime'}} - {{event.endDate | date:'shortTime'}}</span>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-item">
+                    <mat-icon>location_on</mat-icon>
+                    <span>{{event.location.building}}, Room {{event.location.room}}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>person</mat-icon>
+                    <span>{{event.instructor || 'TBA'}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="countdown-banner">
+                <mat-icon>timer</mat-icon>
+                <span class="countdown-text">
+                  Event starts in <strong>{{getDaysUntilEvent(event)}}</strong> days
+                </span>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button color="primary" (click)="addToCalendar(event)">
+                <mat-icon>calendar_month</mat-icon>
+                Add to Calendar
+              </button>
+              <button mat-button>
+                <mat-icon>info</mat-icon>
+                View Details
+              </button>
+              <button mat-button color="warn" (click)="unregisterFromEvent(event)">
+                <mat-icon>cancel</mat-icon>
+                Unregister
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && upcomingEvents.length === 0" class="empty-state">
+          <mat-icon>event_available</mat-icon>
+          <h3>No upcoming events</h3>
+          <p>You haven't registered for any upcoming events yet.</p>
+          <button mat-raised-button color="primary" routerLink="/student/events">
+            <mat-icon>explore</mat-icon>
+            Browse Events
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Past Events Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>history</mat-icon>
+        Past ({{pastEvents.length}})
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+          <p>Loading your past events...</p>
+        </div>
+
+        <!-- Events List -->
+        <div *ngIf="!isLoading && pastEvents.length > 0" class="events-list">
+          <mat-card *ngFor="let event of pastEvents" class="event-card past">
+            <mat-card-header>
+              <div mat-card-avatar class="event-avatar past">
+                <mat-icon>{{getCategoryIcon(event.category?.name)}}</mat-icon>
+              </div>
+              <mat-card-title>{{event.title}}</mat-card-title>
+              <mat-card-subtitle>
+                <mat-chip-set>
+                  <mat-chip>{{event.category?.name || 'Uncategorized'}}</mat-chip>
+                  <mat-chip [color]="wasAttended(event) ? 'accent' : 'warn'">
+                    <mat-icon>{{wasAttended(event) ? 'check_circle' : 'cancel'}}</mat-icon>
+                    {{wasAttended(event) ? 'Attended' : 'Missed'}}
+                  </mat-chip>
+                </mat-chip-set>
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p class="event-description">{{event.description}}</p>
+              
+              <div class="event-details">
+                <div class="detail-item">
+                  <mat-icon>calendar_today</mat-icon>
+                  <span>{{event.startDate | date:'fullDate'}}</span>
+                </div>
+                <div class="detail-item">
+                  <mat-icon>location_on</mat-icon>
+                  <span>{{event.location.building}}, Room {{event.location.room}}</span>
+                </div>
+              </div>
+
+              <div *ngIf="wasAttended(event)" class="attendance-badge">
+                <mat-icon>verified</mat-icon>
+                <span>You attended this event</span>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-raised-button color="primary" 
+                      *ngIf="wasAttended(event)"
+                      (click)="downloadCertificate(event)">
+                <mat-icon>workspace_premium</mat-icon>
+                Download Certificate
+              </button>
+              <button mat-button routerLink="/student/feedback">
+                <mat-icon>rate_review</mat-icon>
+                Give Feedback
+              </button>
+              <button mat-button>
+                <mat-icon>info</mat-icon>
+                View Details
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && pastEvents.length === 0" class="empty-state">
+          <mat-icon>history</mat-icon>
+          <h3>No past events</h3>
+          <p>You haven't attended any events yet.</p>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

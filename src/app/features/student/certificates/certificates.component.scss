@@ -1,0 +1,161 @@
+.certificates-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header {
+  margin-bottom: 32px;
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  text-align: center;
+
+  p {
+    margin-top: 16px;
+    color: #666;
+  }
+}
+
+.certificates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.certificate-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .certificate-preview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    text-align: center;
+    position: relative;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+    }
+
+    .certificate-badge {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      span:first-child {
+        font-size: 14px;
+        letter-spacing: 2px;
+      }
+
+      span:last-child {
+        font-size: 18px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  mat-card-content {
+    padding: 20px;
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .event-category {
+      margin-bottom: 16px;
+    }
+
+    .certificate-details {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      p {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          color: #999;
+        }
+      }
+    }
+  }
+
+  mat-card-actions {
+    padding: 16px 20px;
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #666;
+
+  mat-icon {
+    font-size: 80px;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    opacity: 0.3;
+  }
+
+  h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin-bottom: 24px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .certificates-page {
+    padding: 16px;
+  }
+
+  .certificates-grid {
+    grid-template-columns: 1fr;
+  }
+}

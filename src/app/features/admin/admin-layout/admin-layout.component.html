@@ -1,0 +1,110 @@
+<mat-sidenav-container class="admin-container">
+  <mat-sidenav 
+    #sidenav 
+    mode="side" 
+    [opened]="sidenavOpened"
+    class="admin-sidenav">
+    
+    <!-- Logo Section -->
+    <div class="sidenav-header">
+      <div class="logo">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <span *ngIf="sidenavOpened">Admin Panel</span>
+      </div>
+    </div>
+    
+    <!-- Navigation Menu -->
+    <mat-nav-list class="sidenav-menu">
+      <mat-list-item 
+        *ngFor="let item of menuItems" 
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="menu-item">
+        <mat-icon matListItemIcon 
+                  [matBadge]="item.badge || ''" 
+                  [matBadgeColor]="item.badgeColor || 'primary'"
+                  [matBadgeHidden]="!item.badge">
+          {{item.icon}}
+        </mat-icon>
+        <span matListItemTitle *ngIf="sidenavOpened">{{item.title}}</span>
+      </mat-list-item>
+    </mat-nav-list>
+
+    <!-- User Section -->
+    <div class="sidenav-footer" *ngIf="sidenavOpened">
+      <mat-divider></mat-divider>
+      <div class="user-info">
+        <div class="user-avatar">
+          <mat-icon>account_circle</mat-icon>
+        </div>
+        <div class="user-details">
+          <div class="user-name">{{user?.firstName}} {{user?.lastName}}</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <!-- Top Toolbar -->
+    <mat-toolbar class="admin-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-spacer"></span>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search events, users, or settings...">
+      </div>
+
+      <span class="toolbar-spacer"></span>
+
+      <!-- Toolbar Actions -->
+      <button mat-icon-button 
+              [matBadge]="unreadNotifications || ''" 
+              matBadgeColor="warn"
+              [matBadgeHidden]="!unreadNotifications"
+              (click)="navigateTo('/admin/notifications')">
+        <mat-icon>notifications</mat-icon>
+      </button>
+
+      <button mat-icon-button [matMenuTriggerFor]="userMenu">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu">
+        <div class="user-menu-header">
+          <div class="user-avatar-large">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{user?.firstName}} {{user?.lastName}}</div>
+            <div class="user-email">{{user?.email}}</div>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="viewProfile()">
+          <mat-icon>person</mat-icon>
+          <span>My Profile</span>
+        </button>
+        <button mat-menu-item (click)="navigateTo('/admin/settings')">
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <!-- Main Content Area -->
+    <div class="admin-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

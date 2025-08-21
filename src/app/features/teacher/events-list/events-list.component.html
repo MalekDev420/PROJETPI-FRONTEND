@@ -1,0 +1,182 @@
+<div class="events-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>My Events</h1>
+      <p>Manage and track all your events</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="createEvent()">
+      <mat-icon>add</mat-icon>
+      Create New Event
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-value">{{stats.total}}</div>
+        <div class="stat-label">Total Events</div>
+        <mat-icon class="stat-icon">event</mat-icon>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card approved">
+      <mat-card-content>
+        <div class="stat-value">{{stats.approved}}</div>
+        <div class="stat-label">Approved</div>
+        <mat-icon class="stat-icon">check_circle</mat-icon>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card pending">
+      <mat-card-content>
+        <div class="stat-value">{{stats.pending}}</div>
+        <div class="stat-label">Pending</div>
+        <mat-icon class="stat-icon">pending</mat-icon>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card rejected">
+      <mat-card-content>
+        <div class="stat-value">{{stats.rejected}}</div>
+        <div class="stat-label">Rejected</div>
+        <mat-icon class="stat-icon">cancel</mat-icon>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Events Tabs -->
+  <mat-card class="events-card">
+    <!-- Simple Tab Buttons as Alternative -->
+    <div class="tab-buttons">
+      <button mat-button [class.active]="selectedTab === 0" (click)="onTabChange(0)">
+        All Events <span class="tab-badge" *ngIf="stats.total > 0">{{stats.total}}</span>
+      </button>
+      <button mat-button [class.active]="selectedTab === 1" (click)="onTabChange(1)">
+        Approved <span class="tab-badge success" *ngIf="stats.approved > 0">{{stats.approved}}</span>
+      </button>
+      <button mat-button [class.active]="selectedTab === 2" (click)="onTabChange(2)">
+        Pending <span class="tab-badge warning" *ngIf="stats.pending > 0">{{stats.pending}}</span>
+      </button>
+      <button mat-button [class.active]="selectedTab === 3" (click)="onTabChange(3)">
+        Rejected <span class="tab-badge danger" *ngIf="stats.rejected > 0">{{stats.rejected}}</span>
+      </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+
+    <!-- Events Table -->
+    <div *ngIf="!loading && filteredEvents.length > 0" class="events-table-container">
+      <table mat-table [dataSource]="filteredEvents" class="events-table">
+        
+        <!-- Title Column -->
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef>Event Title</th>
+          <td mat-cell *matCellDef="let event">
+            <div class="event-title">
+              <strong>{{event.title}}</strong>
+              <small>{{event.location.room}} - {{event.location.building}}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Category Column -->
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef>Category</th>
+          <td mat-cell *matCellDef="let event">
+            <mat-chip>{{event.category}}</mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Date Column -->
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date & Time</th>
+          <td mat-cell *matCellDef="let event">
+            <div class="date-info">
+              <span>{{event.startDate | date:'MMM d, y'}}</span>
+              <small>{{event.startDate | date:'h:mm a'}} - {{event.endDate | date:'h:mm a'}}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let event">
+            <mat-chip [color]="getStatusColor(event.status)">
+              {{event.status}}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Registrations Column -->
+        <ng-container matColumnDef="registrations">
+          <th mat-header-cell *matHeaderCellDef>Registrations</th>
+          <td mat-cell *matCellDef="let event">
+            <div class="registration-info">
+              <div class="registration-count">
+                {{event.registrations?.length || 0}} / {{event.maxParticipants}}
+              </div>
+              <div class="registration-bar">
+                <div class="registration-progress" 
+                     [style.width.%]="getRegistrationPercentage(event)">
+                </div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let event">
+            <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Actions">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="viewEvent(event)">
+                <mat-icon>visibility</mat-icon>
+                <span>View Details</span>
+              </button>
+              <button mat-menu-item (click)="editEvent(event)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+              <button mat-menu-item (click)="duplicateEvent(event)">
+                <mat-icon>content_copy</mat-icon>
+                <span>Duplicate</span>
+              </button>
+              <button mat-menu-item (click)="viewAnalytics(event)">
+                <mat-icon>analytics</mat-icon>
+                <span>Analytics</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="deleteEvent(event)" class="delete-option">
+                <mat-icon color="warn">delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="event-row"></tr>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && filteredEvents.length === 0" class="empty-state">
+      <mat-icon>event_busy</mat-icon>
+      <h3>No events found</h3>
+      <p>Create your first event to get started</p>
+      <button mat-raised-button color="primary" (click)="createEvent()">
+        <mat-icon>add</mat-icon>
+        Create Event
+      </button>
+    </div>
+  </mat-card>
+</div>

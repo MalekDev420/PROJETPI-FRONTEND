@@ -1,0 +1,125 @@
+<div class="student-events">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Browse Events</h1>
+      <p>Discover and register for upcoming events</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat">
+        <span class="stat-value">{{events.length}}</span>
+        <span class="stat-label">Available Events</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search events</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" 
+                 placeholder="Search by title or description">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="category-field">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="selectedCategory" (selectionChange)="applyFilters()">
+            <mat-option value="all">All Categories</mat-option>
+            <mat-option *ngFor="let category of categories" [value]="category._id">
+              {{category.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="loadEvents()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Loading events...</p>
+  </div>
+
+  <!-- Events Grid -->
+  <div *ngIf="!isLoading" class="events-grid">
+    <mat-card *ngFor="let event of filteredEvents" class="event-card">
+      <mat-card-header>
+        <div mat-card-avatar class="event-avatar">
+          <mat-icon>{{getCategoryIcon(event.category?.name)}}</mat-icon>
+        </div>
+        <mat-card-title>{{event.title}}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-chip-set>
+            <mat-chip>{{event.category?.name || 'Uncategorized'}}</mat-chip>
+          </mat-chip-set>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="event-description">{{event.description}}</p>
+        
+        <div class="event-details">
+          <div class="detail-item">
+            <mat-icon>calendar_today</mat-icon>
+            <span>{{event.startDate | date:'MMM d, y'}}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>schedule</mat-icon>
+            <span>{{event.startDate | date:'shortTime'}} - {{event.endDate | date:'shortTime'}}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>location_on</mat-icon>
+            <span>{{event.location.building}}, Room {{event.location.room}}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>person</mat-icon>
+            <span>{{event.instructor || 'TBA'}}</span>
+          </div>
+        </div>
+
+        <div class="event-capacity">
+          <div class="capacity-info">
+            <mat-icon>group</mat-icon>
+            <span>{{getAvailableSpots(event)}} / {{event.maxParticipants}} spots available</span>
+          </div>
+          <mat-progress-bar 
+            mode="determinate" 
+            [value]="(event.registrations?.length || 0) / event.maxParticipants * 100">
+          </mat-progress-bar>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" 
+                [disabled]="isRegistered(event) || getAvailableSpots(event) === 0"
+                (click)="registerForEvent(event)">
+          <mat-icon>{{isRegistered(event) ? 'check_circle' : 'add_circle'}}</mat-icon>
+          {{isRegistered(event) ? 'Registered' : 'Register'}}
+        </button>
+        <button mat-button>
+          <mat-icon>info</mat-icon>
+          View Details
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredEvents.length === 0" class="empty-state">
+    <mat-icon>event_busy</mat-icon>
+    <h3>No events found</h3>
+    <p>Try adjusting your filters or check back later for new events.</p>
+    <button mat-raised-button color="primary" (click)="loadEvents()">
+      <mat-icon>refresh</mat-icon>
+      Refresh Events
+    </button>
+  </div>
+</div>

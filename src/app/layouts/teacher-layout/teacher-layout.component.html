@@ -1,0 +1,103 @@
+<mat-sidenav-container class="sidenav-container">
+  <!-- Sidebar -->
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="logo-section">
+      <mat-icon class="logo-icon">school</mat-icon>
+      <h2>Event Manager</h2>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <div class="user-section">
+      <div class="user-avatar">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="user-info">
+        <h3>{{user?.fullName}}</h3>
+        <p>{{user?.department}}</p>
+        <span class="role-badge">Teacher</span>
+      </div>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <mat-nav-list class="nav-list">
+      <a mat-list-item 
+         *ngFor="let item of menuItems" 
+         [routerLink]="item.path" 
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{exact: item.path === '/teacher/dashboard'}">
+        <mat-icon matListItemIcon [matBadge]="item.badge" 
+                  [matBadgeHidden]="!item.badge" 
+                  matBadgeColor="warn" 
+                  matBadgeSize="small">
+          {{item.icon}}
+        </mat-icon>
+        <span matListItemTitle>{{item.label}}</span>
+      </a>
+    </mat-nav-list>
+    
+    <div class="sidebar-footer">
+      <button mat-button (click)="logout()" class="logout-btn">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </div>
+  </mat-sidenav>
+  
+  <!-- Main Content -->
+  <mat-sidenav-content>
+    <!-- Top Toolbar -->
+    <mat-toolbar color="primary" class="top-toolbar">
+      <span class="toolbar-title">Teacher Portal</span>
+      <span class="spacer"></span>
+      
+      <!-- Quick Actions -->
+      <button mat-icon-button matTooltip="Create Event" routerLink="/teacher/create-event">
+        <mat-icon>add</mat-icon>
+      </button>
+      
+      <button mat-icon-button matTooltip="Calendar" routerLink="/teacher/calendar">
+        <mat-icon>calendar_today</mat-icon>
+      </button>
+      
+      <!-- Notifications -->
+      <button mat-icon-button [matBadge]="notificationCount" matBadgeColor="warn" matTooltip="Notifications">
+        <mat-icon>notifications</mat-icon>
+      </button>
+      
+      <!-- User Menu -->
+      <button mat-icon-button [matMenuTriggerFor]="userMenu">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      
+      <mat-menu #userMenu="matMenu">
+        <div class="user-menu-header">
+          <div class="user-menu-info">
+            <strong>{{user?.fullName}}</strong>
+            <small>{{user?.email}}</small>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/teacher/profile">
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item routerLink="/teacher/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+    
+    <!-- Page Content -->
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

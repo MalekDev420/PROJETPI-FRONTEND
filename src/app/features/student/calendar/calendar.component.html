@@ -1,0 +1,95 @@
+<div class="student-calendar">
+  <!-- Header -->
+  <div class="calendar-header">
+    <h1>Event Calendar</h1>
+    <p>View all your registered events in calendar view</p>
+  </div>
+
+  <!-- Calendar Controls -->
+  <mat-card class="calendar-card">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="calendar-controls">
+          <button mat-icon-button (click)="previousMonth()">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <h2>{{currentMonth | date:'MMMM yyyy'}}</h2>
+          <button mat-icon-button (click)="nextMonth()">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </mat-card-title>
+      <span class="spacer"></span>
+      <button mat-button color="primary" (click)="goToToday()">
+        <mat-icon>today</mat-icon>
+        Today
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+        <p>Loading calendar...</p>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div *ngIf="!isLoading" class="calendar-grid">
+        <!-- Day Headers -->
+        <div class="day-header">Sun</div>
+        <div class="day-header">Mon</div>
+        <div class="day-header">Tue</div>
+        <div class="day-header">Wed</div>
+        <div class="day-header">Thu</div>
+        <div class="day-header">Fri</div>
+        <div class="day-header">Sat</div>
+        
+        <!-- Calendar Days -->
+        <div *ngFor="let day of calendarDays" 
+             class="calendar-day" 
+             [class.empty]="!day.date"
+             [class.today]="isToday(day.date)"
+             [class.has-events]="day.events?.length > 0">
+          <div class="day-number" *ngIf="day.date">{{day.day}}</div>
+          <div class="day-events" *ngIf="day.events?.length > 0">
+            <div class="event-dot" 
+                 *ngFor="let event of day.events.slice(0, 3)"
+                 [matTooltip]="event.title">
+            </div>
+            <span class="more-events" *ngIf="day.events.length > 3">
+              +{{day.events.length - 3}}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events List for Selected Month -->
+      <div class="month-events" *ngIf="!isLoading">
+        <h3>Events This Month</h3>
+        <div class="events-list">
+          <div *ngFor="let event of events" class="event-item">
+            <div class="event-date">
+              <span class="date-day">{{event.startDate | date:'d'}}</span>
+              <span class="date-month">{{event.startDate | date:'MMM'}}</span>
+            </div>
+            <div class="event-details">
+              <h4>{{event.title}}</h4>
+              <p>
+                <mat-icon>schedule</mat-icon>
+                {{event.startDate | date:'shortTime'}} - {{event.endDate | date:'shortTime'}}
+              </p>
+              <p>
+                <mat-icon>location_on</mat-icon>
+                {{event.location?.building}}, Room {{event.location?.room}}
+              </p>
+            </div>
+          </div>
+          <div *ngIf="events.length === 0" class="no-events">
+            <mat-icon>event_busy</mat-icon>
+            <p>No events scheduled for this month</p>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,190 @@
+<div class="attendees-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Event Attendees</h1>
+      <p>Manage and track event registrations</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="exportAttendees()">
+      <mat-icon>download</mat-icon>
+      Export to CSV
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-value">{{stats.total}}</div>
+        <div class="stat-label">Total Registrations</div>
+        <mat-icon class="stat-icon">people</mat-icon>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card confirmed">
+      <mat-card-content>
+        <div class="stat-value">{{stats.confirmed}}</div>
+        <div class="stat-label">Confirmed</div>
+        <mat-icon class="stat-icon">check_circle</mat-icon>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card pending">
+      <mat-card-content>
+        <div class="stat-value">{{stats.pending}}</div>
+        <div class="stat-label">Pending</div>
+        <mat-icon class="stat-icon">pending</mat-icon>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card checked-in">
+      <mat-card-content>
+        <div class="stat-value">{{stats.checkedIn}}</div>
+        <div class="stat-label">Checked In</div>
+        <mat-icon class="stat-icon">how_to_reg</mat-icon>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters">
+        <mat-form-field appearance="outline">
+          <mat-label>Filter by Event</mat-label>
+          <mat-select [(ngModel)]="selectedEvent" (selectionChange)="onEventFilterChange()">
+            <mat-option value="all">All Events</mat-option>
+            <mat-option *ngFor="let event of events" [value]="event._id">
+              {{event.title}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search attendees</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
+                 placeholder="Search by name, email, or student ID">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Attendees Table -->
+  <mat-card class="attendees-card">
+    <mat-card-content>
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="!loading && filteredAttendees.length > 0" class="table-container">
+        <table mat-table [dataSource]="filteredAttendees" class="attendees-table">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let attendee">{{attendee.name}}</td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let attendee">
+              <a [href]="'mailto:' + attendee.email">{{attendee.email}}</a>
+            </td>
+          </ng-container>
+
+          <!-- Student ID Column -->
+          <ng-container matColumnDef="studentId">
+            <th mat-header-cell *matHeaderCellDef>Student ID</th>
+            <td mat-cell *matCellDef="let attendee">{{attendee.studentId}}</td>
+          </ng-container>
+
+          <!-- Event Column -->
+          <ng-container matColumnDef="event">
+            <th mat-header-cell *matHeaderCellDef>Event</th>
+            <td mat-cell *matCellDef="let attendee">
+              <div class="event-info">
+                <span>{{attendee.event.title}}</span>
+                <small>{{attendee.event.date | date:'MMM d, y'}}</small>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Registration Date Column -->
+          <ng-container matColumnDef="registrationDate">
+            <th mat-header-cell *matHeaderCellDef>Registration Date</th>
+            <td mat-cell *matCellDef="let attendee">
+              {{attendee.registrationDate | date:'MMM d, y h:mm a'}}
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let attendee">
+              <mat-chip [color]="getStatusColor(attendee.status)">
+                {{attendee.status}}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Check-In Column -->
+          <ng-container matColumnDef="checkIn">
+            <th mat-header-cell *matHeaderCellDef>Check-In</th>
+            <td mat-cell *matCellDef="let attendee">
+              <button *ngIf="!attendee.checkInTime && attendee.status === 'confirmed'" 
+                      mat-stroked-button color="primary" 
+                      (click)="checkInAttendee(attendee)">
+                <mat-icon>how_to_reg</mat-icon>
+                Check In
+              </button>
+              <div *ngIf="attendee.checkInTime" class="checked-in-time">
+                <mat-icon color="primary">check_circle</mat-icon>
+                {{attendee.checkInTime | date:'h:mm a'}}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let attendee">
+              <button mat-icon-button [matMenuTriggerFor]="menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="confirmAttendee(attendee)" 
+                        *ngIf="attendee.status === 'pending'">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Confirm Registration</span>
+                </button>
+                <button mat-menu-item (click)="sendReminder(attendee)">
+                  <mat-icon>email</mat-icon>
+                  <span>Send Reminder</span>
+                </button>
+                <button mat-menu-item (click)="cancelRegistration(attendee)" 
+                        *ngIf="attendee.status !== 'cancelled'">
+                  <mat-icon color="warn">cancel</mat-icon>
+                  <span>Cancel Registration</span>
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && filteredAttendees.length === 0" class="empty-state">
+        <mat-icon>people_outline</mat-icon>
+        <h3>No attendees found</h3>
+        <p>No registrations match your current filters</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
