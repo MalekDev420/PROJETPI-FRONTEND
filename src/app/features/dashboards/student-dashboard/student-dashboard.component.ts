@@ -9,7 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NotificationDropdownComponent } from '../../../shared/components/notification-dropdown/notification-dropdown.component';
-
+//encore du travail necessaire , des rectificaitons dans les prochains jours
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
