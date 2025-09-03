@@ -115,7 +115,7 @@ export class RegisterComponent implements OnInit {
         if (response.success) {
           this.snackBar.open('Registration successful! Redirecting...', 'Close', { duration: 3000 });
           
-          // Navigate based on user role
+          // Naviguer la page % le role
           const user = response.data.user;
           setTimeout(() => {
             switch (user.role) {
